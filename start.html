@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTP 状态切换桌面组件</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background for contrast */
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .widget-container {
+            width: 100%;
+            max-width: 400px;
+            min-height: 300px;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.5s, color 0.5s;
+        }
+
+        .status-button {
+            width: 100%;
+            padding: 1.5rem 1rem;
+            border-radius: 1rem;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-button:active {
+            transform: scale(0.98);
+        }
+
+        /* Module A: Architect/Deep Mode */
+        .mode-a {
+            background-color: #ecfdf5; /* Green light */
+            color: #047857; /* Green dark */
+            border: 2px solid #a7f3d0;
+        }
+
+        /* Module B: General/Output Mode */
+        .mode-b {
+            background-color: #eff6ff; /* Blue light */
+            color: #1d4ed8; /* Blue dark */
+            border: 2px solid #bfdbfe;
+        }
+
+        /* Module C: Recharge/Rest Mode */
+        .mode-c {
+            background-color: #f5f3ff; /* Purple light */
+            color: #6d28d9; /* Purple dark */
+            border: 2px solid #ddd6fe;
+        }
+        
+        .mode-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 800;
+        }
+        
+        .mode-subtitle {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: #4b5563;
+        }
+
+        /* Utility classes for dynamic colors */
+        .text-current-mode { color: var(--mode-color); }
+        .bg-current-mode { background-color: var(--mode-bg); }
+        .border-current-mode { border-color: var(--mode-border); }
+
+    </style>
+</head>
+<body>
+
+    <div id="widget-container" class="widget-container bg-white">
+        
+        <div class="text-center mb-4">
+            <h1 class="text-xs font-bold uppercase tracking-wider text-slate-500">当前角色状态</h1>
+        </div>
+
+        <!-- Mode Display -->
+        <div class="text-center mb-6">
+            <p id="mode-icon" class="text-6xl mb-2 transition-all duration-500">🧠</p>
+            <h2 id="mode-title" class="mode-title">隐士模式</h2>
+            <p id="mode-subtitle" class="mode-subtitle text-slate-500"></p>
+        </div>
+
+        <!-- Current Task/Goal -->
+        <div class="p-4 rounded-xl border-2 mb-6" id="goal-box">
+            <div class="font-bold mb-1 flex items-center gap-2">
+                <span id="goal-emoji">🎯</span>
+                <span id="goal-title">核心目标</span>
+            </div>
+            <p id="goal-text" class="text-sm"></p>
+        </div>
+
+        <!-- Trigger/Action Button -->
+        <button id="switch-button" class="status-button w-full transition-all duration-500">
+            切换状态: 将军模式
+        </button>
+        
+        <div class="text-center mt-4">
+            <p id="trigger-text" class="text-xs text-slate-400">触发条件：睡饱 + 咖啡</p>
+        </div>
+
+    </div>
+
+    <script>
+        const MODES = [
+            // 模块 A: 隐士模式 (Architect/Deep Work)
+            { 
+                id: 'A', 
+                title: '隐士模式', 
+                subtitle: '架构师 / 思考者',
+                icon: '🧠',
+                buttonText: '切换状态: 将军模式',
+                triggerText: '触发条件：睡饱 + 咖啡',
+                goalTitle: '只做一件“大”事',
+                goalText: '思考战略、画流程图、或解决一个死胡同。做完就停，哪怕只做了30分钟。',
+                bgColor: '#ecfdf5', // Green light
+                textColor: '#047857', // Green dark
+                borderColor: '#a7f3d0'
+            },
+            // 模块 B: 将军模式 (General/Output/Meetings)
+            { 
+                id: 'B', 
+                title: '将军模式', 
+                subtitle: '救火队长 / 决策者',
+                icon: '⚔️',
+                buttonText: '切换状态: 补给模式',
+                triggerText: '触发条件：走进办公室',
+                goalTitle: '速战速决',
+                goalText: '集中处理签字、回复消息、听汇报等“垃圾”任务。发指令给 ISTJ 落地。',
+                bgColor: '#eff6ff', // Blue light
+                textColor: '#1d4ed8', // Blue dark
+                borderColor: '#bfdbfe'
+            },
+            // 模块 C: 补给模式 (Recharge/Rest)
+            { 
+                id: 'C', 
+                title: '补给模式', 
+                subtitle: '生活家 / 运动者',
+                icon: '🔋',
+                buttonText: '切换状态: 隐士模式',
+                triggerText: '触发条件：感觉累了 / 下班',
+                goalTitle: '生发阳气',
+                goalText: '物理排毒（运动、户外）。向戊土女友充电。只谈风月，不谈工作。',
+                bgColor: '#f5f3ff', // Purple light
+                textColor: '#6d28d9', // Purple dark
+                borderColor: '#ddd6fe'
+            }
+        ];
+
+        const container = document.getElementById('widget-container');
+        const modeIcon = document.getElementById('mode-icon');
+        const modeTitle = document.getElementById('mode-title');
+        const modeSubtitle = document.getElementById('mode-subtitle');
+        const goalBox = document.getElementById('goal-box');
+        const goalTitle = document.getElementById('goal-title');
+        const goalText = document.getElementById('goal-text');
+        const switchButton = document.getElementById('switch-button');
+        const triggerText = document.getElementById('trigger-text');
+        
+        let currentIndex = 0;
+
+        /**
+         * Loads the saved state index from localStorage.
+         * @returns {number} The index of the last active mode, defaults to 0.
+         */
+        function loadState() {
+            const savedIndex = localStorage.getItem('intp_mode_index');
+            if (savedIndex !== null) {
+                currentIndex = parseInt(savedIndex, 10) % MODES.length;
+            } else {
+                currentIndex = 0;
+            }
+        }
+
+        /**
+         * Renders the current state to the UI.
+         */
+        function renderMode() {
+            const mode = MODES[currentIndex];
+            const nextMode = MODES[(currentIndex + 1) % MODES.length];
+
+            // Update main container theme
+            container.style.backgroundColor = mode.bgColor;
+            modeIcon.style.color = mode.textColor;
+            modeTitle.style.color = mode.textColor;
+            goalBox.style.borderColor = mode.borderColor;
+            
+            // Update mode details
+            modeIcon.textContent = mode.icon;
+            modeTitle.textContent = mode.title;
+            modeSubtitle.textContent = mode.subtitle;
+            
+            // Update Goal Box
+            goalTitle.textContent = mode.goalTitle;
+            goalText.textContent = mode.goalText;
+            goalTitle.style.color = mode.textColor;
+            goalBox.style.backgroundColor = mode.bgColor;
+            
+            // Update Switch Button
+            switchButton.textContent = mode.buttonText;
+            switchButton.className = `status-button transition-all duration-500`; // Reset classes
+            switchButton.style.backgroundColor = mode.textColor;
+            switchButton.style.color = 'white';
+            switchButton.style.border = `2px solid ${mode.textColor}`;
+
+            // Update Trigger Text
+            triggerText.textContent = mode.triggerText;
+            triggerText.style.color = mode.textColor;
+
+            // Save state
+            localStorage.setItem('intp_mode_index', currentIndex);
+        }
+
+        /**
+         * Switches to the next mode in the sequence.
+         */
+        function switchMode() {
+            currentIndex = (currentIndex + 1) % MODES.length;
+            renderMode();
+        }
+
+        // Initialize on load
+        loadState();
+        renderMode();
+
+        // Attach event listener
+        switchButton.addEventListener('click', switchMode);
+
+    </script>
+</body>
+</html>

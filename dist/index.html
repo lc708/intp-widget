@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTP 状态切换</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        .widget-container {
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.5s, color 0.5s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Title bar for dragging */
+        .title-bar {
+            -webkit-app-region: drag;
+            height: 36px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: -1.5rem -1.5rem 1rem -1.5rem;
+            padding: 0 1rem;
+            border-radius: 1.5rem 1.5rem 0 0;
+            cursor: move;
+        }
+
+        .title-bar-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.6;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+            -webkit-app-region: no-drag;
+        }
+
+        .window-btn {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            opacity: 0.8;
+        }
+
+        .window-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .btn-close {
+            background-color: #ff5f57;
+        }
+
+        .btn-minimize {
+            background-color: #febc2e;
+        }
+
+        .btn-pin {
+            background-color: #28c840;
+            position: relative;
+        }
+
+        .btn-pin.pinned::after {
+            content: '📌';
+            font-size: 8px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .status-button {
+            width: 100%;
+            padding: 1.25rem 1rem;
+            border-radius: 1rem;
+            text-align: center;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: none;
+            -webkit-app-region: no-drag;
+        }
+
+        .status-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-button:active {
+            transform: scale(0.98) translateY(0);
+        }
+        
+        .mode-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+        
+        .mode-subtitle {
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .mode-icon {
+            font-size: 3.5rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        .goal-box {
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 2px solid;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .goal-header {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .goal-text {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            opacity: 0.85;
+        }
+
+        .trigger-text {
+            text-align: center;
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            opacity: 0.5;
+        }
+
+        .mode-display {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .header-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            opacity: 0.5;
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="widget-container" class="widget-container">
+        
+        <!-- Draggable Title Bar -->
+        <div class="title-bar" data-tauri-drag-region>
+            <span class="title-bar-text">INTP Widget</span>
+            <div class="window-controls">
+                <button class="window-btn btn-pin" id="btn-pin" title="置顶/取消置顶"></button>
+                <button class="window-btn btn-minimize" id="btn-minimize" title="最小化"></button>
+                <button class="window-btn btn-close" id="btn-close" title="关闭"></button>
+            </div>
+        </div>
+
+        <div class="header-label">当前角色状态</div>
+
+        <!-- Mode Display -->
+        <div class="mode-display">
+            <p id="mode-icon" class="mode-icon">🧠</p>
+            <h2 id="mode-title" class="mode-title">隐士模式</h2>
+            <p id="mode-subtitle" class="mode-subtitle"></p>
+        </div>
+
+        <!-- Current Task/Goal -->
+        <div class="goal-box" id="goal-box">
+            <div class="goal-header">
+                <span id="goal-emoji">🎯</span>
+                <span id="goal-title">核心目标</span>
+            </div>
+            <p id="goal-text" class="goal-text"></p>
+        </div>
+
+        <!-- Trigger/Action Button -->
+        <button id="switch-button" class="status-button">
+            切换状态: 将军模式
+        </button>
+        
+        <p id="trigger-text" class="trigger-text">触发条件：睡饱 + 咖啡</p>
+
+    </div>
+
+    <script>
+        const MODES = [
+            { 
+                id: 'A', 
+                title: '隐士模式', 
+                subtitle: '架构师 / 思考者',
+                icon: '🧠',
+                buttonText: '切换状态: 将军模式',
+                triggerText: '触发条件：睡饱 + 咖啡',
+                goalTitle: '只做一件"大"事',
+                goalText: '思考战略、画流程图、或解决一个死胡同。做完就停，哪怕只做了30分钟。',
+                bgColor: '#ecfdf5',
+                textColor: '#047857',
+                borderColor: '#a7f3d0'
+            },
+            { 
+                id: 'B', 
+                title: '将军模式', 
+                subtitle: '救火队长 / 决策者',
+                icon: '⚔️',
+                buttonText: '切换状态: 补给模式',
+                triggerText: '触发条件：走进办公室',
+                goalTitle: '速战速决',
+                goalText: '集中处理签字、回复消息、听汇报等"垃圾"任务。发指令给 ISTJ 落地。',
+                bgColor: '#eff6ff',
+                textColor: '#1d4ed8',
+                borderColor: '#bfdbfe'
+            },
+            { 
+                id: 'C', 
+                title: '补给模式', 
+                subtitle: '生活家 / 运动者',
+                icon: '🔋',
+                buttonText: '切换状态: 隐士模式',
+                triggerText: '触发条件：感觉累了 / 下班',
+                goalTitle: '生发阳气',
+                goalText: '物理排毒（运动、户外）。向戊土女友充电。只谈风月，不谈工作。',
+                bgColor: '#f5f3ff',
+                textColor: '#6d28d9',
+                borderColor: '#ddd6fe'
+            }
+        ];
+
+        const container = document.getElementById('widget-container');
+        const titleBar = document.querySelector('.title-bar');
+        const modeIcon = document.getElementById('mode-icon');
+        const modeTitle = document.getElementById('mode-title');
+        const modeSubtitle = document.getElementById('mode-subtitle');
+        const goalBox = document.getElementById('goal-box');
+        const goalTitle = document.getElementById('goal-title');
+        const goalText = document.getElementById('goal-text');
+        const switchButton = document.getElementById('switch-button');
+        const triggerText = document.getElementById('trigger-text');
+        
+        let currentIndex = 0;
+        let isPinned = true;
+
+        function loadState() {
+            const savedIndex = localStorage.getItem('intp_mode_index');
+            if (savedIndex !== null) {
+                currentIndex = parseInt(savedIndex, 10) % MODES.length;
+            } else {
+                currentIndex = 0;
+            }
+        }
+
+        function renderMode() {
+            const mode = MODES[currentIndex];
+
+            container.style.backgroundColor = mode.bgColor;
+            titleBar.style.backgroundColor = mode.bgColor;
+            modeTitle.style.color = mode.textColor;
+            modeSubtitle.style.color = mode.textColor;
+            goalBox.style.borderColor = mode.borderColor;
+            goalBox.style.backgroundColor = mode.bgColor;
+            
+            modeIcon.textContent = mode.icon;
+            modeTitle.textContent = mode.title;
+            modeSubtitle.textContent = mode.subtitle;
+            
+            goalTitle.textContent = mode.goalTitle;
+            goalText.textContent = mode.goalText;
+            goalTitle.style.color = mode.textColor;
+            goalText.style.color = mode.textColor;
+            
+            switchButton.textContent = mode.buttonText;
+            switchButton.style.backgroundColor = mode.textColor;
+            switchButton.style.color = 'white';
+
+            triggerText.style.color = mode.textColor;
+            triggerText.textContent = mode.triggerText;
+
+            localStorage.setItem('intp_mode_index', currentIndex);
+        }
+
+        function switchMode() {
+            currentIndex = (currentIndex + 1) % MODES.length;
+            renderMode();
+        }
+
+        // Window controls
+        document.getElementById('btn-close').addEventListener('click', async () => {
+            if (window.__TAURI__) {
+                const { getCurrentWindow } = window.__TAURI__.window;
+                await getCurrentWindow().close();
+            } else {
+                window.close();
+            }
+        });
+
+        document.getElementById('btn-minimize').addEventListener('click', async () => {
+            if (window.__TAURI__) {
+                const { getCurrentWindow } = window.__TAURI__.window;
+                await getCurrentWindow().minimize();
+            }
+        });
+
+        document.getElementById('btn-pin').addEventListener('click', async () => {
+            isPinned = !isPinned;
+            const pinBtn = document.getElementById('btn-pin');
+            pinBtn.classList.toggle('pinned', isPinned);
+            
+            if (window.__TAURI__) {
+                const { getCurrentWindow } = window.__TAURI__.window;
+                await getCurrentWindow().setAlwaysOnTop(isPinned);
+            }
+        });
+
+        // Initialize
+        loadState();
+        renderMode();
+        
+        // Set initial pin state
+        document.getElementById('btn-pin').classList.add('pinned');
+
+        switchButton.addEventListener('click', switchMode);
+    </script>
+</body>
+</html>
+
