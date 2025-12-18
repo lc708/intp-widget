@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="mode_a_bg">#FFECFDF5</color>
+    <color name="mode_a_text">#FF047857</color>
+    <color name="mode_b_bg">#FFEFF6FF</color>
+    <color name="mode_b_text">#FF1D4ED8</color>
+    <color name="mode_c_bg">#FFF5F3FF</color>
+    <color name="mode_c_text">#FF6D28D9</color>
+</resources>
+
