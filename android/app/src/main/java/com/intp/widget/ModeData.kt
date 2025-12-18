@@ -19,7 +19,7 @@ val modes = listOf(
         title = "隐士模式",
         subtitle = "架构师 / 思考者",
         icon = "🧠",
-        goalTitle = "只做一件"大"事",
+        goalTitle = "只做一件大事",
         goalText = "思考战略、画流程图、或解决一个死胡同。做完就停，哪怕只做了30分钟。",
         bgColor = Color(0xFFECFDF5),
         textColor = Color(0xFF047857)
@@ -30,7 +30,7 @@ val modes = listOf(
         subtitle = "救火队长 / 决策者",
         icon = "⚔️",
         goalTitle = "速战速决",
-        goalText = "集中处理签字、回复消息、听汇报等"垃圾"任务。发指令给 ISTJ 落地。",
+        goalText = "集中处理签字、回复消息、听汇报等杂事。发指令给 ISTJ 落地。",
         bgColor = Color(0xFFEFF6FF),
         textColor = Color(0xFF1D4ED8)
     ),
@@ -45,4 +45,3 @@ val modes = listOf(
         textColor = Color(0xFF6D28D9)
     )
 )
-

@@ -2,33 +2,46 @@ package com.intp.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.Preferences
-import androidx.glance.*
+import androidx.glance.GlanceId
+import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.*
+import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.layout.*
+import androidx.glance.background
+import androidx.glance.currentState
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
+import androidx.glance.layout.Column
+import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
+import androidx.glance.layout.padding
+import androidx.glance.state.GlanceStateDefinition
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import androidx.glance.color.ColorProvider as GlanceColorProvider
-import androidx.glance.appwidget.cornerRadius
-import androidx.compose.ui.graphics.Color
 
 val modeIndexKey = intPreferencesKey("mode_index")
 val currentIndexParam = ActionParameters.Key<Int>("current_index")
 
 class INTPWidget : GlanceAppWidget() {
 
-    override val stateDefinition = PreferencesGlanceStateDefinition
+    override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -47,7 +60,7 @@ fun WidgetContent(mode: ModeData, currentIndex: Int) {
         modifier = GlanceModifier
             .fillMaxSize()
             .cornerRadius(24.dp)
-            .background(ColorProvider(mode.bgColor, mode.bgColor))
+            .background(mode.bgColor)
             .clickable(
                 actionRunCallback<SwitchModeAction>(
                     actionParametersOf(currentIndexParam to currentIndex)
@@ -72,7 +85,7 @@ fun WidgetContent(mode: ModeData, currentIndex: Int) {
             Text(
                 text = mode.title,
                 style = TextStyle(
-                    color = ColorProvider(mode.textColor, mode.textColor),
+                    color = ColorProvider(mode.textColor),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -82,10 +95,7 @@ fun WidgetContent(mode: ModeData, currentIndex: Int) {
             Text(
                 text = mode.subtitle,
                 style = TextStyle(
-                    color = ColorProvider(
-                        mode.textColor.copy(alpha = 0.7f),
-                        mode.textColor.copy(alpha = 0.7f)
-                    ),
+                    color = ColorProvider(mode.textColor.copy(alpha = 0.7f)),
                     fontSize = 11.sp
                 )
             )
@@ -97,14 +107,14 @@ fun WidgetContent(mode: ModeData, currentIndex: Int) {
                 modifier = GlanceModifier
                     .fillMaxWidth()
                     .cornerRadius(12.dp)
-                    .background(ColorProvider(Color.White.copy(alpha = 0.6f), Color.White.copy(alpha = 0.6f)))
+                    .background(Color.White.copy(alpha = 0.6f))
                     .padding(10.dp)
             ) {
                 Column {
                     Text(
                         text = "🎯 ${mode.goalTitle}",
                         style = TextStyle(
-                            color = ColorProvider(mode.textColor, mode.textColor),
+                            color = ColorProvider(mode.textColor),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -113,10 +123,7 @@ fun WidgetContent(mode: ModeData, currentIndex: Int) {
                     Text(
                         text = mode.goalText,
                         style = TextStyle(
-                            color = ColorProvider(
-                                mode.textColor.copy(alpha = 0.85f),
-                                mode.textColor.copy(alpha = 0.85f)
-                            ),
+                            color = ColorProvider(mode.textColor.copy(alpha = 0.85f)),
                             fontSize = 11.sp
                         ),
                         maxLines = 3
@@ -130,13 +137,13 @@ fun WidgetContent(mode: ModeData, currentIndex: Int) {
             Box(
                 modifier = GlanceModifier
                     .cornerRadius(8.dp)
-                    .background(ColorProvider(mode.textColor, mode.textColor))
+                    .background(mode.textColor)
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
                     text = "点击切换状态",
                     style = TextStyle(
-                        color = ColorProvider(Color.White, Color.White),
+                        color = ColorProvider(Color.White),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -157,10 +164,9 @@ class SwitchModeAction : ActionCallback {
         
         updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
             prefs.toMutablePreferences().apply {
-                this[modeIndexKey] = newIndex
+                set(modeIndexKey, newIndex)
             }
         }
         INTPWidget().update(context, glanceId)
     }
 }
-
