@@ -9,7 +9,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
@@ -24,11 +23,13 @@ import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
@@ -59,95 +60,97 @@ fun WidgetContent(mode: ModeData, currentIndex: Int) {
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .cornerRadius(24.dp)
+            .cornerRadius(20.dp)
             .background(mode.bgColor)
             .clickable(
                 actionRunCallback<SwitchModeAction>(
                     actionParametersOf(currentIndexParam to currentIndex)
                 )
             )
-            .padding(16.dp)
+            .padding(12.dp)
     ) {
-        Column(
+        Row(
             modifier = GlanceModifier.fillMaxSize(),
-            verticalAlignment = Alignment.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // 图标
-            Text(
-                text = mode.icon,
-                style = TextStyle(fontSize = 36.sp)
-            )
-            
-            Spacer(modifier = GlanceModifier.height(6.dp))
-            
-            // 标题
-            Text(
-                text = mode.title,
-                style = TextStyle(
-                    color = ColorProvider(mode.textColor),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-            
-            // 副标题
-            Text(
-                text = mode.subtitle,
-                style = TextStyle(
-                    color = ColorProvider(mode.textColor.copy(alpha = 0.7f)),
-                    fontSize = 11.sp
-                )
-            )
-            
-            Spacer(modifier = GlanceModifier.height(10.dp))
-            
-            // 目标框
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .cornerRadius(12.dp)
-                    .background(Color.White.copy(alpha = 0.6f))
-                    .padding(10.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "🎯 ${mode.goalTitle}",
-                        style = TextStyle(
-                            color = ColorProvider(mode.textColor),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                    Spacer(modifier = GlanceModifier.height(4.dp))
-                    Text(
-                        text = mode.goalText,
-                        style = TextStyle(
-                            color = ColorProvider(mode.textColor.copy(alpha = 0.85f)),
-                            fontSize = 11.sp
-                        ),
-                        maxLines = 3
-                    )
-                }
-            }
-            
-            Spacer(modifier = GlanceModifier.height(10.dp))
-            
-            // 切换按钮提示
-            Box(
-                modifier = GlanceModifier
-                    .cornerRadius(8.dp)
-                    .background(mode.textColor)
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            // 左侧：图标 + 标题
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = GlanceModifier.padding(end = 12.dp)
             ) {
                 Text(
-                    text = "点击切换状态",
+                    text = mode.icon,
+                    style = TextStyle(fontSize = 32.sp)
+                )
+                Spacer(modifier = GlanceModifier.height(4.dp))
+                Text(
+                    text = mode.title,
                     style = TextStyle(
-                        color = ColorProvider(Color.White),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium
+                        color = ColorProvider(mode.textColor),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 )
+                Text(
+                    text = mode.subtitle,
+                    style = TextStyle(
+                        color = ColorProvider(mode.textColor.copy(alpha = 0.7f)),
+                        fontSize = 10.sp
+                    )
+                )
+            }
+            
+            // 右侧：目标框 + 按钮
+            Column(
+                modifier = GlanceModifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 目标框
+                Box(
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .cornerRadius(10.dp)
+                        .background(Color.White.copy(alpha = 0.6f))
+                        .padding(8.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "🎯 ${mode.goalTitle}",
+                            style = TextStyle(
+                                color = ColorProvider(mode.textColor),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Text(
+                            text = mode.goalText,
+                            style = TextStyle(
+                                color = ColorProvider(mode.textColor.copy(alpha = 0.85f)),
+                                fontSize = 10.sp
+                            ),
+                            maxLines = 2
+                        )
+                    }
+                }
+                
+                Spacer(modifier = GlanceModifier.height(6.dp))
+                
+                // 切换按钮
+                Box(
+                    modifier = GlanceModifier
+                        .cornerRadius(6.dp)
+                        .background(mode.textColor)
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "点击切换",
+                        style = TextStyle(
+                            color = ColorProvider(Color.White),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                }
             }
         }
     }
